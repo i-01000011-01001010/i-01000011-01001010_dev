@@ -66,11 +66,10 @@ browsers block for `file://` URLs.
 
 1. `npm install`
 2. `npx wrangler login` — authorizes wrangler against your Cloudflare account
-3. Set `account_id` in `wrangler.jsonc`. If your token has access to more
-   than one Cloudflare account (that's what caused the CI error above),
-   wrangler won't guess — run `npx wrangler whoami` to list the account
-   names and IDs available to you, and paste the right one in. The
-   account ID isn't secret, so it's fine to commit.
+3. If your token has access to more than one Cloudflare account, wrangler
+   won't guess which to deploy to. For local use, either answer the
+   interactive prompt when it appears, or export it once per shell:
+   `export CLOUDFLARE_ACCOUNT_ID=<id>` (find it with `npx wrangler whoami`).
 4. `npm run deploy` — publishes to `<name>.<your-subdomain>.workers.dev`
 5. In the Cloudflare dashboard, under this Worker → **Settings → Domains &
    Routes**, add `i-01000011-01001010.dev` as a custom domain.
@@ -78,12 +77,14 @@ browsers block for `file://` URLs.
 ## Continuous deploy from GitHub
 
 `.github/workflows/deploy.yml` runs `wrangler deploy` on every push to
-`main`. It needs one repo secret:
+`main`. It needs two repo secrets under **Settings → Secrets and
+variables → Actions → New repository secret**:
 
-- **Settings → Secrets and variables → Actions → New repository secret**
-- Name: `CLOUDFLARE_API_TOKEN`
-- Value: a Cloudflare API token with the **Edit Cloudflare Workers**
-  template permissions (create one at
+- `CLOUDFLARE_API_TOKEN` — a Cloudflare API token with the **Edit
+  Cloudflare Workers** template permissions (create one at
   `dash.cloudflare.com` → My Profile → API Tokens)
+- `CLOUDFLARE_ACCOUNT_ID` — needed if that token can see more than one
+  Cloudflare account, which is what caused the earlier "more than one
+  account available" CI error. Find it with `npx wrangler whoami`.
 
-Once that's set, `git push` is the whole deploy process.
+Once both are set, `git push` is the whole deploy process.
