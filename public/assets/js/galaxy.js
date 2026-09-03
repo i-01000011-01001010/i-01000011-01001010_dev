@@ -303,7 +303,7 @@
           proj._fade.meshMat.userData.factor = factor;
           proj._fade.glowMat.userData.factor = factor;
           proj._fade.labelMat.userData.factor = factor;
-          proj._fade.lineMat.userData.factor = sysActive ? (top.kind === 'system' || projFocused ? 1 : 0.35) : 0.08;
+          proj._fade.lineMat.userData.factor = sysActive ? ((!top || top.kind === 'system' || projFocused) ? 1 : 0.35) : 0.08;
         });
       });
     }
