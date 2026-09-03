@@ -66,8 +66,13 @@ browsers block for `file://` URLs.
 
 1. `npm install`
 2. `npx wrangler login` — authorizes wrangler against your Cloudflare account
-3. `npm run deploy` — publishes to `<name>.<your-subdomain>.workers.dev`
-4. In the Cloudflare dashboard, under this Worker → **Settings → Domains &
+3. Set `account_id` in `wrangler.jsonc`. If your token has access to more
+   than one Cloudflare account (that's what caused the CI error above),
+   wrangler won't guess — run `npx wrangler whoami` to list the account
+   names and IDs available to you, and paste the right one in. The
+   account ID isn't secret, so it's fine to commit.
+4. `npm run deploy` — publishes to `<name>.<your-subdomain>.workers.dev`
+5. In the Cloudflare dashboard, under this Worker → **Settings → Domains &
    Routes**, add `i-01000011-01001010.dev` as a custom domain.
 
 ## Continuous deploy from GitHub
