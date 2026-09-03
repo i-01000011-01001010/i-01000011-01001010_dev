@@ -70,7 +70,9 @@ html, body {
   max-width: 70vw;
   pointer-events: none;
   z-index: 4;
+  transition: transform 0.2s ease;
 }
+body.nav-focused #legend { transform: translateY(40px); }
 #legend .item {
   display: flex;
   align-items: center;
@@ -210,6 +212,7 @@ html, body {
   #masthead { padding: 14px 16px; }
   #masthead .hint { display: none; }
   #legend { top: 56px; left: 16px; }
+  body.nav-focused #legend { transform: translateY(36px); }
   #backBtn { left: 16px; }
   #backBtn.visible { transform: translateY(42px); }
   #pauseBtn { bottom: 16px; right: 16px; }

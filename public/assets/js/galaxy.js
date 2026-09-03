@@ -380,8 +380,13 @@
     }
 
     function updateBackBtn() {
-      if (focusStack.length) backBtn.classList.add('visible');
-      else backBtn.classList.remove('visible');
+      if (focusStack.length) {
+        backBtn.classList.add('visible');
+        document.body.classList.add('nav-focused');
+      } else {
+        backBtn.classList.remove('visible');
+        document.body.classList.remove('nav-focused');
+      }
     }
 
     function enterSystem(si) {

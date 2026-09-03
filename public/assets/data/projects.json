@@ -80,16 +80,16 @@
       ]
     },
     {
-      "id": "streaming",
-      "label": "Streaming & avatars",
+      "id": "characters-stories",
+      "label": "Characters & stories",
       "color": "#e3b354",
-      "desc": "The VTuber side of the operation, currently dark but not dead.",
+      "desc": "Original characters and the stories built around them \u2014 early glimpses, not the whole manuscript.",
       "projects": [
         {
           "id": "goblin-king",
-          "label": "Project Goblin King",
-          "desc": "A VTuber / streaming avatar project under the SiegeCain identity. Currently closed, but the plan is to bring it back, not bury it.",
-          "status": "closed \u2014 not abandoned"
+          "label": "The Goblin King",
+          "desc": "A character built for a streaming avatar under the SiegeCain identity, with more of a backstory than a VTuber usually gets. Currently on hold, not shelved.",
+          "status": "on hold"
         }
       ]
     }
