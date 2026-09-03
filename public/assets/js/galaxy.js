@@ -6,6 +6,7 @@
   var container = document.getElementById('scene');
   var legendEl = document.getElementById('legend');
   var resetBtn = document.getElementById('resetBtn');
+  var playBtn = document.getElementById('playBtn');
   var pauseBtn = document.getElementById('pauseBtn');
   var popupEl = document.getElementById('popup');
   var popupCrumb = popupEl.querySelector('.crumb');
@@ -316,8 +317,11 @@
     // same drag-to-look-around now orbit around the thing you picked —
     // nothing about "rotate" changes, only what it's rotating around.
     // ------------------------------------------------------------------
-    var camTheta = 0.5;
-    var camElevation = 0.18;
+    var INITIAL_THETA = 0.5;
+    var INITIAL_ELEVATION = 0.18;
+
+    var camTheta = INITIAL_THETA;
+    var camElevation = INITIAL_ELEVATION;
     var camRadius = DEFAULT_RADIUS;
     var camTarget = new THREE.Vector3(0, 0, 0);
 
@@ -334,17 +338,45 @@
 
     function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
+    function shortestDelta(a, b) {
+      var d = (b - a) % (Math.PI * 2);
+      if (d > Math.PI) d -= Math.PI * 2;
+      if (d < -Math.PI) d += Math.PI * 2;
+      return d;
+    }
+
     var tween = {
       active: false, t0: 0, duration: 850,
       fromTarget: new THREE.Vector3(), toTarget: new THREE.Vector3(),
-      fromRadius: DEFAULT_RADIUS, toRadius: DEFAULT_RADIUS
+      fromRadius: DEFAULT_RADIUS, toRadius: DEFAULT_RADIUS,
+      rotateCamera: false, fromTheta: 0, dTheta: 0, fromElevation: 0, dElevation: 0
     };
 
+    // Used when selecting a system/planet/core: moves the target and
+    // radius only, leaving the current viewing angle alone so you don't
+    // get spun around on top of being zoomed in.
     function tweenTo(target, radius) {
       tween.fromTarget.copy(camTarget);
       tween.toTarget.copy(target);
       tween.fromRadius = camRadius;
       tween.toRadius = radius;
+      tween.rotateCamera = false;
+      tween.t0 = performance.now();
+      tween.active = true;
+    }
+
+    // Used by reset: restores the exact view the page loaded with —
+    // target, radius, AND the original viewing angle.
+    function tweenToInitialView() {
+      tween.fromTarget.copy(camTarget);
+      tween.toTarget.set(0, 0, 0);
+      tween.fromRadius = camRadius;
+      tween.toRadius = DEFAULT_RADIUS;
+      tween.fromTheta = camTheta;
+      tween.dTheta = shortestDelta(camTheta, INITIAL_THETA);
+      tween.fromElevation = camElevation;
+      tween.dElevation = INITIAL_ELEVATION - camElevation;
+      tween.rotateCamera = true;
       tween.t0 = performance.now();
       tween.active = true;
     }
@@ -435,11 +467,12 @@
     }
 
     function resetToGalaxy() {
-      if (!focusStack.length) return;
       focusStack = [];
       applyFocusVisuals();
-      tweenTo(new THREE.Vector3(0, 0, 0), DEFAULT_RADIUS);
+      tweenToInitialView();
       closePopup();
+      manualPaused = false;
+      lastInteractionAt = null;
       updateResetBtn();
     }
 
@@ -457,15 +490,13 @@
 
     function markInteraction() { lastInteractionAt = performance.now(); }
 
-    function updatePauseBtn() {
-      pauseBtn.textContent = manualPaused ? '\u25B6' : '\u23F8';
-      pauseBtn.setAttribute('aria-label', manualPaused ? 'Resume animation' : 'Pause animation');
-    }
     pauseBtn.addEventListener('click', function () {
-      manualPaused = !manualPaused;
-      updatePauseBtn();
+      manualPaused = true;
     });
-    updatePauseBtn();
+    playBtn.addEventListener('click', function () {
+      manualPaused = false;
+      lastInteractionAt = null; // spin resumes immediately, around whatever's currently targeted
+    });
 
     function pausedForSpin() {
       if (manualPaused) return true;
@@ -635,6 +666,10 @@
         var e = easeInOutCubic(t);
         camTarget.lerpVectors(tween.fromTarget, tween.toTarget, e);
         camRadius = tween.fromRadius + (tween.toRadius - tween.fromRadius) * e;
+        if (tween.rotateCamera) {
+          camTheta = tween.fromTheta + tween.dTheta * e;
+          camElevation = tween.fromElevation + tween.dElevation * e;
+        }
         if (t >= 1) tween.active = false;
       }
 
