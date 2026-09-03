@@ -90,6 +90,7 @@
     var MAX_RADIUS = 34;
     var FOCUS_DIST_SYSTEM = 6.2;
     var FOCUS_DIST_PROJECT = 3.0;
+    var FOCUS_DIST_CORE = 3.2;
 
     function makeLabelSprite(text, sizePx, color) {
       var canvasScale = 3;
@@ -172,22 +173,32 @@
       scene.add(new THREE.Points(starGeo, starMat));
     })();
 
+    var clickable = []; // { mesh, kind: 'core'|'system'|'project', sysIndex?, proj? }
+
     // Core / identity node
     var coreMesh = new THREE.Mesh(new THREE.SphereGeometry(0.7, 32, 32), new THREE.MeshBasicMaterial({ color: 0xf2c879 }));
     group.add(coreMesh);
+    registerFade(coreMesh.material, 1);
+    clickable.push({ mesh: coreMesh, kind: 'core' });
+
     var coreGlow = makeGlowSprite(0xf2c879, 3.2);
     coreGlow.sprite.position.set(0, 0, 0);
     group.add(coreGlow.sprite);
+    registerFade(coreGlow.mat, 0.55);
+
     var coreShell = new THREE.Mesh(
       new THREE.SphereGeometry(0.95, 16, 16),
       new THREE.MeshBasicMaterial({ color: 0xf2c879, wireframe: true, transparent: true, opacity: 0.22 })
     );
     group.add(coreShell);
+    registerFade(coreShell.material, 0.22);
+
     var coreLabelObj = makeLabelSprite(GALAXY_DATA.identity.label, 26, '#f2c879');
     coreLabelObj.sprite.position.set(0, -1.3, 0);
     group.add(coreLabelObj.sprite);
+    registerFade(coreLabelObj.mat, 1);
 
-    var clickable = []; // { mesh, kind: 'system'|'project', sysIndex, proj? }
+    var coreFade = { meshMat: coreMesh.material, glowMat: coreGlow.mat, shellMat: coreShell.material, labelMat: coreLabelObj.mat };
 
     systems.forEach(function (sys, si) {
       var starMesh = new THREE.Mesh(new THREE.SphereGeometry(0.5, 28, 28), new THREE.MeshBasicMaterial({ color: sys.color }));
@@ -266,6 +277,14 @@
     // ------------------------------------------------------------------
     function applyFocusVisuals() {
       var top = focusStack.length ? focusStack[focusStack.length - 1] : null;
+
+      var coreActive = !top || top.kind === 'core';
+      var cf = coreActive ? 1 : 0.15;
+      coreFade.meshMat.userData.factor = cf;
+      coreFade.glowMat.userData.factor = cf;
+      coreFade.shellMat.userData.factor = cf;
+      coreFade.labelMat.userData.factor = cf;
+
       systems.forEach(function (sys, si) {
         var sysActive = !top || top.sysIndex === si;
         var f = sysActive ? 1 : 0.12;
@@ -376,9 +395,27 @@
       openPopup();
     }
 
+    function showCorePopup() {
+      var note = popupEl.querySelector('.note');
+      if (note) note.remove();
+      popupCrumb.textContent = GALAXY_DATA.identity.label;
+      popupTitle.textContent = GALAXY_DATA.identity.label;
+      popupDesc.textContent = GALAXY_DATA.identity.tagline || '';
+      popupLinks.innerHTML = '';
+      openPopup();
+    }
+
     function updateResetBtn() {
       if (focusStack.length) resetBtn.classList.add('visible');
       else resetBtn.classList.remove('visible');
+    }
+
+    function enterCore() {
+      focusStack = [{ kind: 'core' }];
+      applyFocusVisuals();
+      tweenTo(new THREE.Vector3(0, 0, 0), FOCUS_DIST_CORE);
+      showCorePopup();
+      updateResetBtn();
     }
 
     function enterSystem(si) {
@@ -410,10 +447,15 @@
     popupClose.addEventListener('click', closePopup);
 
     // ------------------------------------------------------------------
-    // Pause: manual button OR hovering the scene OR being focused
+    // Pause: manual button OR a recent interaction. Spin never stops on
+    // its own until you actually do something (drag, zoom, or select a
+    // node) — then it resumes automatically 30s after the last one.
     // ------------------------------------------------------------------
     var manualPaused = false;
-    var isHovering = false;
+    var lastInteractionAt = null; // null = no interaction yet, keep spinning
+    var INACTIVITY_RESUME_MS = 30000;
+
+    function markInteraction() { lastInteractionAt = performance.now(); }
 
     function updatePauseBtn() {
       pauseBtn.textContent = manualPaused ? '\u25B6' : '\u23F8';
@@ -425,40 +467,61 @@
     });
     updatePauseBtn();
 
-    container.addEventListener('mouseenter', function () { isHovering = true; });
-    container.addEventListener('mouseleave', function () { isHovering = false; });
-
     function pausedForSpin() {
-      return manualPaused || isHovering;
+      if (manualPaused) return true;
+      if (lastInteractionAt === null) return false;
+      return (performance.now() - lastInteractionAt) < INACTIVITY_RESUME_MS;
     }
     function pausedForOrbits() {
-      return manualPaused || isHovering || focusStack.length > 0;
+      return manualPaused || focusStack.length > 0;
     }
 
     // ------------------------------------------------------------------
-    // Drag to rotate, wheel to zoom
+    // Drag to rotate, wheel to zoom, with inertia on release
     // ------------------------------------------------------------------
     var isDragging = false;
     var moved = false;
     var prev = { x: 0, y: 0 };
     var idleSpin = 0.0014;
 
+    var velTheta = 0;
+    var velElevation = 0;
+    var INERTIA_FRICTION = 0.95;
+    var INERTIA_STOP_EPS = 0.00005;
+    var INERTIA_MIN_FLICK_SPEED = 0.0015;
+
     function pointerDown(x, y) {
       isDragging = true;
       moved = false;
       prev.x = x; prev.y = y;
+      velTheta = 0;
+      velElevation = 0;
       container.classList.add('dragging');
+      markInteraction();
     }
     function pointerMove(x, y) {
       if (!isDragging) return;
       var dx = x - prev.x, dy = y - prev.y;
       if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
-      camTheta += dx * 0.006;
-      camElevation += dy * 0.006;
+      var dTheta = dx * 0.006;
+      var dElevation = dy * 0.006;
+      camTheta += dTheta;
+      camElevation += dElevation;
       camElevation = Math.max(-1.1, Math.min(1.1, camElevation));
+      // Smoothed velocity estimate, carried forward as inertia on release
+      velTheta = velTheta * 0.7 + dTheta * 0.3;
+      velElevation = velElevation * 0.7 + dElevation * 0.3;
       prev.x = x; prev.y = y;
     }
-    function pointerUp() { isDragging = false; container.classList.remove('dragging'); }
+    function pointerUp() {
+      isDragging = false;
+      container.classList.remove('dragging');
+      var speed = Math.abs(velTheta) + Math.abs(velElevation);
+      if (!moved || speed < INERTIA_MIN_FLICK_SPEED) {
+        velTheta = 0;
+        velElevation = 0;
+      }
+    }
 
     container.addEventListener('mousedown', function (e) { pointerDown(e.clientX, e.clientY); });
     window.addEventListener('mousemove', function (e) { pointerMove(e.clientX, e.clientY); });
@@ -475,6 +538,7 @@
     container.addEventListener('wheel', function (e) {
       e.preventDefault();
       camRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, camRadius + e.deltaY * 0.014));
+      markInteraction();
     }, { passive: false });
 
     // ------------------------------------------------------------------
@@ -514,11 +578,15 @@
         var alreadyThisSystem = focusStack.length === 1 && focusStack[0].kind === 'system' && focusStack[0].sysIndex === hit.sysIndex;
         if (alreadyThisSystem) { showSystemPopup(systems[hit.sysIndex]); return; }
         enterSystem(hit.sysIndex);
-      } else {
+      } else if (hit.kind === 'project') {
         var top = focusStack[focusStack.length - 1];
         var alreadyThisProject = top && top.kind === 'project' && top.proj === hit.proj;
         if (alreadyThisProject) { showProjectPopup(systems[hit.sysIndex], hit.proj); return; }
         enterProject(hit.sysIndex, hit.proj);
+      } else if (hit.kind === 'core') {
+        var alreadyCore = focusStack.length === 1 && focusStack[0].kind === 'core';
+        if (alreadyCore) { showCorePopup(); return; }
+        enterCore();
       }
     });
 
@@ -546,6 +614,16 @@
             positionPlanet(sys, proj);
           });
         });
+      }
+
+      if (!isDragging && (velTheta !== 0 || velElevation !== 0)) {
+        camTheta += velTheta;
+        camElevation += velElevation;
+        camElevation = Math.max(-1.1, Math.min(1.1, camElevation));
+        velTheta *= INERTIA_FRICTION;
+        velElevation *= INERTIA_FRICTION;
+        if (Math.abs(velTheta) < INERTIA_STOP_EPS) velTheta = 0;
+        if (Math.abs(velElevation) < INERTIA_STOP_EPS) velElevation = 0;
       }
 
       if (!pausedForSpin()) {
