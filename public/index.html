@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>i.01000011.01001010 — coming soon</title>
+<meta name="description" content="i.01000011.01001010 is under construction. Résumé and code are live in the meantime.">
+<link rel="stylesheet" href="assets/css/site.css">
+<style>
+  body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed;
+    inset: -10%;
+    z-index: -1;
+    background:
+      radial-gradient(ellipse 40% 35% at 18% 12%, rgba(156, 140, 242, 0.16), transparent 60%),
+      radial-gradient(ellipse 35% 30% at 85% 78%, rgba(93, 202, 165, 0.12), transparent 60%),
+      radial-gradient(ellipse 30% 30% at 70% 10%, rgba(227, 179, 84, 0.08), transparent 60%);
+    animation: drift 26s ease-in-out infinite alternate;
+  }
+  @keyframes drift {
+    from { transform: translate3d(0, 0, 0) scale(1); }
+    to { transform: translate3d(-2%, 1.5%, 0) scale(1.04); }
+  }
+
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 28px;
+  }
+  .topbar nav { display: flex; gap: 20px; }
+  .topbar nav a {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-dim);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .topbar nav a:hover { color: var(--ink); border-bottom-color: var(--ink-dim); }
+
+  .hero {
+    padding: 48px 28px 8px;
+    max-width: 720px;
+    opacity: 0;
+    transform: translateY(10px);
+    animation: reveal 0.7s ease forwards 0.1s;
+  }
+  @keyframes reveal { to { opacity: 1; transform: translateY(0); } }
+
+  .hero h1 {
+    font-size: clamp(34px, 6vw, 54px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin: 18px 0 18px;
+    font-weight: 600;
+  }
+  .hero .lede {
+    font-size: 16.5px;
+    line-height: 1.65;
+    color: #c4c4dc;
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  .preview {
+    padding: 40px 28px 12px;
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+  }
+  .preview-frame {
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--nebula);
+  }
+  .preview-chrome {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .preview-chrome .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--hairline);
+  }
+  .preview-chrome .chrome-label {
+    margin-left: 10px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    color: var(--ink-dim);
+  }
+  .preview-frame iframe {
+    display: block;
+    width: 100%;
+    height: 64vh;
+    min-height: 420px;
+    border: 0;
+    background: var(--void);
+  }
+  .preview-caption {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    margin: 14px 4px 0;
+  }
+  .preview-caption a { color: var(--ink); border-bottom: 1px solid var(--ink-dim); text-decoration: none; }
+
+  .footer {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+    padding: 30px 28px 34px;
+  }
+  .footer .footlinks { display: flex; gap: 18px; }
+  .footer .footlinks a {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-dim);
+    text-decoration: none;
+  }
+  .footer .footlinks a:hover { color: var(--ink); }
+
+  @media (max-width: 640px) {
+    .hero { padding: 34px 20px 4px; }
+    .preview { padding: 30px 20px 8px; }
+    .footer { padding: 24px 20px 28px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="/">i.01000011.01001010</a>
+  <nav>
+    <a href="https://corey.mihalko.co/" target="_blank" rel="noopener">résumé</a>
+    <a href="https://github.com/i-01000011-01001010" target="_blank" rel="noopener">github</a>
+  </nav>
+</header>
+
+<main class="hero">
+  <span class="pill">in progress</span>
+  <h1>This site doesn't exist yet.</h1>
+  <p class="lede">
+    i.01000011.01001010 is under construction — a home for the projects, notes, and fluff
+    that don't have anywhere else to live. While it's being built, here's an early,
+    unfinished look at how it's going to feel.
+  </p>
+</main>
+
+<section class="preview">
+  <div class="preview-frame">
+    <div class="preview-chrome">
+      <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+      <span class="chrome-label">preview — not final</span>
+    </div>
+    <iframe
+      src="demo/index.html"
+      title="Early preview of the project map, grouped into systems and projects"
+      loading="lazy"></iframe>
+  </div>
+  <p class="preview-caption">
+    Drag to look around, tap a star to open a system. Nothing here is final —
+    <a href="demo/index.html">open it full-screen</a>.
+  </p>
+</section>
+
+<footer class="footer">
+  <span class="brand">i.01000011.01001010</span>
+  <div class="footlinks">
+    <a href="https://corey.mihalko.co/" target="_blank" rel="noopener">résumé</a>
+    <a href="https://github.com/i-01000011-01001010" target="_blank" rel="noopener">github</a>
+  </div>
+</footer>
+
+</body>
+</html>

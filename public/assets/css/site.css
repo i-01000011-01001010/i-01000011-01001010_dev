@@ -1,0 +1,81 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --void: #050509;
+  --nebula: #0d0b1a;
+  --ink: #f1f2fb;
+  --ink-dim: #8d8dac;
+  --hairline: rgba(241, 242, 251, 0.12);
+  --core: #f2c879;
+  --glass: rgba(13, 11, 26, 0.66);
+  --radius-lg: 26px;
+  --radius-sm: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--void);
+  color: var(--ink);
+  font-family: "Space Grotesk", -apple-system, "Segoe UI", sans-serif;
+}
+
+a { color: inherit; }
+
+/* Brand wordmark — the binary identity, no logo yet */
+.brand {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  text-decoration: none;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.brand .bit-dim { color: var(--ink-dim); }
+
+/* Pill buttons / links */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  text-decoration: none;
+  padding: 10px 18px;
+  border-radius: 999px;
+  border: 1px solid var(--hairline);
+  color: var(--ink);
+  background: transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.btn:hover { border-color: var(--ink-dim); background: rgba(241, 242, 251, 0.04); }
+.btn-fill {
+  background: var(--ink);
+  color: var(--void);
+  border-color: var(--ink);
+}
+.btn-fill:hover { background: #d6d8ee; border-color: #d6d8ee; }
+
+/* Small lowercase status pill, never shouty caps */
+.pill {
+  display: inline-block;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink-dim);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 5px 12px;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+}

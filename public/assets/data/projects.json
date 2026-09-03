@@ -1,0 +1,97 @@
+{
+  "identity": {
+    "label": "i.01000011.01001010"
+  },
+  "systems": [
+    {
+      "id": "web-infra",
+      "label": "Web & infrastructure",
+      "color": "#5dcaa5",
+      "desc": "The sites and network plumbing that everything else runs on top of.",
+      "projects": [
+        {
+          "id": "x42",
+          "label": "X42 site family",
+          "desc": "Five interconnected sites for X42 Core and its sub-brands, sharing one design system and running on Cloudflare Workers.",
+          "demo": "https://x42.co",
+          "status": "live"
+        },
+        {
+          "id": "resume",
+          "label": "Resume site",
+          "desc": "A personal CV site styled after a Commodore 64 terminal \u2014 green phosphor text, boot sequence, the works.",
+          "demo": "https://corey.mihalko.co",
+          "status": "live"
+        },
+        {
+          "id": "vlan",
+          "label": "Smart home VLAN",
+          "desc": "A self-hosted smart home migration with proper VLAN segmentation, keeping IoT devices walled off from anything that actually matters.",
+          "status": "in progress"
+        }
+      ]
+    },
+    {
+      "id": "creative",
+      "label": "Creative & fluff",
+      "color": "#f0997b",
+      "desc": "Projects that exist because they were fun to make, not because anyone asked for them.",
+      "projects": [
+        {
+          "id": "a42",
+          "label": "a42 ARG",
+          "desc": "An alternate-reality-game style creative web project \u2014 a puzzle box wearing a website as a disguise.",
+          "demo": "https://a42.co",
+          "status": "in progress"
+        },
+        {
+          "id": "goblin",
+          "label": "Goblin Apothecary",
+          "desc": "Laser engraving meets handmade apothecary goods. Half craft business, half excuse to run the laser cutter more.",
+          "status": "in development"
+        },
+        {
+          "id": "fo76",
+          "label": "FO76 C.A.M.P. menu",
+          "desc": "A vendor and services menu site for a Fallout 76 C.A.M.P., styled like an in-game terminal.",
+          "demo": "https://fo76.a42.co",
+          "status": "live"
+        },
+        {
+          "id": "notary-seal",
+          "label": "Notary seal design",
+          "desc": "Turning a flat notary logo into something that reads like an embossed stamp, for X42 Notary Services.",
+          "status": "note"
+        }
+      ]
+    },
+    {
+      "id": "data",
+      "label": "Data & dashboards",
+      "color": "#9c8cf2",
+      "desc": "Pulling public numbers into places where they are harder to look away from.",
+      "projects": [
+        {
+          "id": "inequality",
+          "label": "Income inequality dashboard",
+          "desc": "A data-driven dashboard comparing billionaire net worth against public program costs, and 76 years of cost-of-living growth against wages.",
+          "status": "in progress"
+        }
+      ]
+    },
+    {
+      "id": "streaming",
+      "label": "Streaming & avatars",
+      "color": "#e3b354",
+      "desc": "The VTuber side of the operation, currently dark but not dead.",
+      "projects": [
+        {
+          "id": "goblin-king",
+          "label": "Project Goblin King",
+          "desc": "A VTuber / streaming avatar project under the SiegeCain identity. Currently closed, but the plan is to bring it back, not bury it.",
+          "status": "closed \u2014 not abandoned"
+        }
+      ]
+    }
+  ]
+}

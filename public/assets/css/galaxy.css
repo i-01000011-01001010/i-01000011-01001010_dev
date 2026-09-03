@@ -1,0 +1,217 @@
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#scene {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  cursor: grab;
+  touch-action: none;
+  background:
+    radial-gradient(ellipse 55% 40% at 25% 15%, rgba(156, 140, 242, 0.12), transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 75%, rgba(93, 202, 165, 0.08), transparent 60%),
+    var(--void);
+}
+#scene.dragging { cursor: grabbing; }
+#scene canvas { display: block; }
+
+#masthead {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 18px 22px;
+  pointer-events: none;
+  z-index: 5;
+}
+#masthead .left {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  pointer-events: auto;
+}
+#masthead .left a.brand { border-bottom: 1px solid transparent; }
+#masthead .left a.brand:hover { border-bottom-color: var(--ink-dim); }
+#masthead nav {
+  display: flex;
+  gap: 14px;
+}
+#masthead nav a {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink-dim);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+}
+#masthead nav a:hover { color: var(--ink); border-bottom-color: var(--ink-dim); }
+#masthead .hint {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-align: right;
+  line-height: 1.5;
+  pointer-events: none;
+}
+
+#legend {
+  position: fixed;
+  top: 66px;
+  left: 22px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  max-width: 70vw;
+  pointer-events: none;
+  z-index: 4;
+}
+#legend .item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--ink-dim);
+}
+#legend .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
+
+#backBtn {
+  position: fixed;
+  top: 18px;
+  left: 22px;
+  z-index: 6;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  padding: 9px 16px;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+#backBtn.visible {
+  opacity: 1;
+  transform: translateY(46px);
+  pointer-events: auto;
+}
+#backBtn:hover { border-color: var(--ink-dim); }
+
+#pauseBtn {
+  position: fixed;
+  bottom: 22px;
+  right: 22px;
+  z-index: 6;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: var(--glass);
+  backdrop-filter: blur(10px);
+  color: var(--ink);
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+#pauseBtn:hover { border-color: var(--ink-dim); }
+
+#popup {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translate(-50%, 0);
+  width: min(480px, calc(100vw - 44px));
+  z-index: 7;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease, transform 0.22s ease;
+}
+#popup.visible {
+  opacity: 1;
+  transform: translate(-50%, -6px);
+  pointer-events: auto;
+}
+#popup .popup-card {
+  position: relative;
+  background: var(--glass);
+  backdrop-filter: blur(16px);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-lg);
+  padding: 22px 24px 20px;
+}
+#popup .popup-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--ink-dim);
+  font-size: 15px;
+  line-height: 1;
+  cursor: pointer;
+}
+#popup .popup-close:hover { color: var(--ink); border-color: var(--ink-dim); }
+#popup .crumb {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 12px;
+  color: var(--ink-dim);
+  margin: 0 0 8px;
+  padding-right: 30px;
+}
+#popup .crumb .sep { margin: 0 6px; color: var(--hairline); }
+#popup .ptitle {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 8px;
+  letter-spacing: -0.01em;
+  padding-right: 30px;
+}
+#popup .desc {
+  font-size: 14px;
+  line-height: 1.55;
+  color: #c4c4dc;
+  margin: 0;
+}
+#popup .note {
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  margin: 10px 0 0;
+}
+#popup .links {
+  display: flex;
+  gap: 20px;
+  margin-top: 16px;
+}
+#popup a.link {
+  color: var(--core);
+  text-decoration: none;
+  font-family: "JetBrains Mono", monospace;
+  font-size: 13px;
+  border-bottom: 1px solid transparent;
+}
+#popup a.link:hover { border-bottom-color: var(--core); }
+
+@media (max-width: 640px) {
+  #masthead { padding: 14px 16px; }
+  #masthead .hint { display: none; }
+  #legend { top: 56px; left: 16px; }
+  #backBtn { left: 16px; }
+  #backBtn.visible { transform: translateY(42px); }
+  #pauseBtn { bottom: 16px; right: 16px; }
+  #popup { bottom: 16px; }
+}

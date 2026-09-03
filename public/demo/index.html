@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>project galaxy — i.01000011.01001010</title>
+<link rel="stylesheet" href="../assets/css/site.css">
+<link rel="stylesheet" href="../assets/css/galaxy.css">
+</head>
+<body>
+
+<div id="scene" aria-label="Interactive 3D map of projects, grouped into systems"></div>
+
+<header id="masthead">
+  <div class="left">
+    <a class="brand" href="../index.html">i.01000011.01001010</a>
+    <nav>
+      <a href="https://corey.mihalko.co/" target="_blank" rel="noopener">résumé</a>
+      <a href="https://github.com/i-01000011-01001010" target="_blank" rel="noopener">github</a>
+    </nav>
+  </div>
+  <div class="hint">drag to rotate &middot; scroll or pinch to zoom<br>tap a star or planet to open it</div>
+</header>
+
+<div id="legend"></div>
+
+<button id="backBtn" type="button">&larr; back</button>
+<button id="pauseBtn" type="button" aria-label="Pause animation">&#9208;</button>
+
+<div id="popup" hidden>
+  <div class="popup-card">
+    <button class="popup-close" type="button" aria-label="Close">&times;</button>
+    <div class="crumb"></div>
+    <h2 class="ptitle"></h2>
+    <p class="desc"></p>
+    <div class="links"></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="../assets/js/galaxy.js"></script>
+</body>
+</html>
