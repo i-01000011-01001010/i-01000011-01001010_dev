@@ -91,7 +91,6 @@
     var MAX_RADIUS = 34;
     var FOCUS_DIST_SYSTEM = 6.2;
     var FOCUS_DIST_PROJECT = 3.0;
-    var FOCUS_DIST_CORE = 3.2;
 
     function makeLabelSprite(text, sizePx, color) {
       var canvasScale = 3;
@@ -279,7 +278,7 @@
     function applyFocusVisuals() {
       var top = focusStack.length ? focusStack[focusStack.length - 1] : null;
 
-      var coreActive = !top || top.kind === 'core';
+      var coreActive = !top;
       var cf = coreActive ? 1 : 0.15;
       coreFade.meshMat.userData.factor = cf;
       coreFade.glowMat.userData.factor = cf;
@@ -427,27 +426,9 @@
       openPopup();
     }
 
-    function showCorePopup() {
-      var note = popupEl.querySelector('.note');
-      if (note) note.remove();
-      popupCrumb.textContent = GALAXY_DATA.identity.label;
-      popupTitle.textContent = GALAXY_DATA.identity.label;
-      popupDesc.textContent = GALAXY_DATA.identity.tagline || '';
-      popupLinks.innerHTML = '';
-      openPopup();
-    }
-
     function updateResetBtn() {
       if (focusStack.length) resetBtn.classList.add('visible');
       else resetBtn.classList.remove('visible');
-    }
-
-    function enterCore() {
-      focusStack = [{ kind: 'core' }];
-      applyFocusVisuals();
-      tweenTo(new THREE.Vector3(0, 0, 0), FOCUS_DIST_CORE);
-      showCorePopup();
-      updateResetBtn();
     }
 
     function enterSystem(si) {
@@ -495,16 +476,16 @@
     });
     playBtn.addEventListener('click', function () {
       manualPaused = false;
-      lastInteractionAt = null; // spin resumes immediately, around whatever's currently targeted
+      lastInteractionAt = null; // spin AND planet orbits resume immediately, right where you are
     });
 
-    function pausedForSpin() {
+    // Single pause state governs both planet-orbit motion and camera
+    // spin together, so Play/Pause always affect everything at once —
+    // regardless of whether something is currently focused/zoomed-in.
+    function isPaused() {
       if (manualPaused) return true;
       if (lastInteractionAt === null) return false;
       return (performance.now() - lastInteractionAt) < INACTIVITY_RESUME_MS;
-    }
-    function pausedForOrbits() {
-      return manualPaused || focusStack.length > 0;
     }
 
     // ------------------------------------------------------------------
@@ -615,9 +596,7 @@
         if (alreadyThisProject) { showProjectPopup(systems[hit.sysIndex], hit.proj); return; }
         enterProject(hit.sysIndex, hit.proj);
       } else if (hit.kind === 'core') {
-        var alreadyCore = focusStack.length === 1 && focusStack[0].kind === 'core';
-        if (alreadyCore) { showCorePopup(); return; }
-        enterCore();
+        resetToGalaxy();
       }
     });
 
@@ -637,8 +616,9 @@
     // ------------------------------------------------------------------
     function animate() {
       requestAnimationFrame(animate);
+      var paused = isPaused();
 
-      if (!pausedForOrbits()) {
+      if (!paused) {
         systems.forEach(function (sys) {
           sys.projects.forEach(function (proj) {
             proj.orbitAngle += proj.orbitSpeed;
@@ -657,7 +637,7 @@
         if (Math.abs(velElevation) < INERTIA_STOP_EPS) velElevation = 0;
       }
 
-      if (!pausedForSpin()) {
+      if (!paused) {
         camTheta += idleSpin;
       }
 
