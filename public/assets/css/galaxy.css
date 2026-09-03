@@ -70,9 +70,7 @@ html, body {
   max-width: 70vw;
   pointer-events: none;
   z-index: 4;
-  transition: transform 0.2s ease;
 }
-body.nav-focused #legend { transform: translateY(40px); }
 #legend .item {
   display: flex;
   align-items: center;
@@ -83,31 +81,34 @@ body.nav-focused #legend { transform: translateY(40px); }
 }
 #legend .dot { width: 7px; height: 7px; border-radius: 50%; flex: none; }
 
-#backBtn {
+#resetBtn {
   position: fixed;
-  top: 18px;
+  bottom: 22px;
   left: 22px;
   z-index: 6;
-  font-family: "JetBrains Mono", monospace;
-  font-size: 12px;
-  color: var(--ink);
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--hairline);
   background: var(--glass);
   backdrop-filter: blur(10px);
-  border: 1px solid var(--hairline);
-  border-radius: 999px;
-  padding: 9px 16px;
+  color: var(--ink);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   opacity: 0;
-  transform: translateY(-6px);
+  transform: scale(0.85);
   pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  transition: opacity 0.2s ease, transform 0.2s ease, border-color 0.15s ease;
 }
-#backBtn.visible {
+#resetBtn.visible {
   opacity: 1;
-  transform: translateY(46px);
+  transform: scale(1);
   pointer-events: auto;
 }
-#backBtn:hover { border-color: var(--ink-dim); }
+#resetBtn:hover { border-color: var(--ink-dim); }
 
 #pauseBtn {
   position: fixed;
@@ -212,9 +213,7 @@ body.nav-focused #legend { transform: translateY(40px); }
   #masthead { padding: 14px 16px; }
   #masthead .hint { display: none; }
   #legend { top: 56px; left: 16px; }
-  body.nav-focused #legend { transform: translateY(36px); }
-  #backBtn { left: 16px; }
-  #backBtn.visible { transform: translateY(42px); }
+  #resetBtn { bottom: 16px; left: 16px; }
   #pauseBtn { bottom: 16px; right: 16px; }
   #popup { bottom: 16px; }
 }

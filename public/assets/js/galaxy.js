@@ -5,7 +5,7 @@
 
   var container = document.getElementById('scene');
   var legendEl = document.getElementById('legend');
-  var backBtn = document.getElementById('backBtn');
+  var resetBtn = document.getElementById('resetBtn');
   var pauseBtn = document.getElementById('pauseBtn');
   var popupEl = document.getElementById('popup');
   var popupCrumb = popupEl.querySelector('.crumb');
@@ -85,7 +85,9 @@
     // ------------------------------------------------------------------
     // Scene / renderer
     // ------------------------------------------------------------------
-    var DEFAULT_Z = 20;
+    var DEFAULT_RADIUS = 20;
+    var MIN_RADIUS = 3;
+    var MAX_RADIUS = 34;
     var FOCUS_DIST_SYSTEM = 6.2;
     var FOCUS_DIST_PROJECT = 3.0;
 
@@ -142,7 +144,7 @@
 
     var scene = new THREE.Scene();
     var camera = new THREE.PerspectiveCamera(50, container.clientWidth / container.clientHeight, 0.1, 200);
-    camera.position.set(0, 0, DEFAULT_Z);
+    camera.position.set(0, 0, DEFAULT_RADIUS);
 
     var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setSize(container.clientWidth, container.clientHeight);
@@ -288,47 +290,42 @@
     }
 
     // ------------------------------------------------------------------
-    // Camera focus (rotate the group so the target sits on the view axis,
-    // then dolly the camera in/out along Z — camera itself never moves
-    // off-axis, so drag-to-look-around keeps working the same way)
+    // Orbit camera: the camera always orbits a target point at some
+    // radius (theta = azimuth, elevation = tilt). Normally that target
+    // is the galaxy core (0,0,0). Selecting a system or planet tweens
+    // the target to that object instead, so the same idle spin and the
+    // same drag-to-look-around now orbit around the thing you picked —
+    // nothing about "rotate" changes, only what it's rotating around.
     // ------------------------------------------------------------------
-    function computeFocusRotation(P) {
-      var px = P.x, py = P.y, pz = P.z;
-      var y = Math.atan2(-px, pz);
-      var zPrime = -px * Math.sin(y) + pz * Math.cos(y);
-      if (zPrime < 0) { y += Math.PI; zPrime = -px * Math.sin(y) + pz * Math.cos(y); }
-      var x = Math.atan2(py, zPrime);
-      return { x: x, y: y };
-    }
+    var camTheta = 0.5;
+    var camElevation = 0.18;
+    var camRadius = DEFAULT_RADIUS;
+    var camTarget = new THREE.Vector3(0, 0, 0);
 
-    function shortestDelta(a, b) {
-      var d = (b - a) % (Math.PI * 2);
-      if (d > Math.PI) d -= Math.PI * 2;
-      if (d < -Math.PI) d += Math.PI * 2;
-      return d;
+    function updateCameraPosition() {
+      var ce = Math.cos(camElevation), se = Math.sin(camElevation);
+      camera.position.set(
+        camTarget.x + camRadius * ce * Math.sin(camTheta),
+        camTarget.y + camRadius * se,
+        camTarget.z + camRadius * ce * Math.cos(camTheta)
+      );
+      camera.lookAt(camTarget);
     }
+    updateCameraPosition();
 
     function easeInOutCubic(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 
-    var tween = { active: false, t0: 0, duration: 850, fromX: 0, fromY: 0, dX: 0, dY: 0, fromZ: DEFAULT_Z, toZ: DEFAULT_Z, rotate: false };
+    var tween = {
+      active: false, t0: 0, duration: 850,
+      fromTarget: new THREE.Vector3(), toTarget: new THREE.Vector3(),
+      fromRadius: DEFAULT_RADIUS, toRadius: DEFAULT_RADIUS
+    };
 
-    function focusOn(localPos, distance) {
-      var rot = computeFocusRotation(localPos);
-      tween.fromX = group.rotation.x;
-      tween.fromY = group.rotation.y;
-      tween.dX = shortestDelta(group.rotation.x, rot.x);
-      tween.dY = shortestDelta(group.rotation.y, rot.y);
-      tween.fromZ = camera.position.z;
-      tween.toZ = localPos.length() + distance;
-      tween.rotate = true;
-      tween.t0 = performance.now();
-      tween.active = true;
-    }
-
-    function resetView() {
-      tween.fromZ = camera.position.z;
-      tween.toZ = DEFAULT_Z;
-      tween.rotate = false;
+    function tweenTo(target, radius) {
+      tween.fromTarget.copy(camTarget);
+      tween.toTarget.copy(target);
+      tween.fromRadius = camRadius;
+      tween.toRadius = radius;
       tween.t0 = performance.now();
       tween.active = true;
     }
@@ -379,48 +376,37 @@
       openPopup();
     }
 
-    function updateBackBtn() {
-      if (focusStack.length) {
-        backBtn.classList.add('visible');
-        document.body.classList.add('nav-focused');
-      } else {
-        backBtn.classList.remove('visible');
-        document.body.classList.remove('nav-focused');
-      }
+    function updateResetBtn() {
+      if (focusStack.length) resetBtn.classList.add('visible');
+      else resetBtn.classList.remove('visible');
     }
 
     function enterSystem(si) {
       focusStack = [{ kind: 'system', sysIndex: si }];
       applyFocusVisuals();
-      focusOn(systems[si].pos, FOCUS_DIST_SYSTEM);
+      tweenTo(systems[si].pos, FOCUS_DIST_SYSTEM);
       showSystemPopup(systems[si]);
-      updateBackBtn();
+      updateResetBtn();
     }
 
     function enterProject(si, proj) {
       focusStack = [{ kind: 'system', sysIndex: si }, { kind: 'project', sysIndex: si, proj: proj }];
       applyFocusVisuals();
-      focusOn(proj._mesh.position, FOCUS_DIST_PROJECT);
+      tweenTo(proj._mesh.position, FOCUS_DIST_PROJECT);
       showProjectPopup(systems[si], proj);
-      updateBackBtn();
+      updateResetBtn();
     }
 
-    function goBack() {
+    function resetToGalaxy() {
       if (!focusStack.length) return;
-      focusStack.pop();
+      focusStack = [];
       applyFocusVisuals();
-      if (!focusStack.length) {
-        resetView();
-        closePopup();
-      } else {
-        var top = focusStack[focusStack.length - 1];
-        focusOn(systems[top.sysIndex].pos, FOCUS_DIST_SYSTEM);
-        showSystemPopup(systems[top.sysIndex]);
-      }
-      updateBackBtn();
+      tweenTo(new THREE.Vector3(0, 0, 0), DEFAULT_RADIUS);
+      closePopup();
+      updateResetBtn();
     }
 
-    backBtn.addEventListener('click', goBack);
+    resetBtn.addEventListener('click', resetToGalaxy);
     popupClose.addEventListener('click', closePopup);
 
     // ------------------------------------------------------------------
@@ -442,7 +428,10 @@
     container.addEventListener('mouseenter', function () { isHovering = true; });
     container.addEventListener('mouseleave', function () { isHovering = false; });
 
-    function effectivelyPaused() {
+    function pausedForSpin() {
+      return manualPaused || isHovering;
+    }
+    function pausedForOrbits() {
       return manualPaused || isHovering || focusStack.length > 0;
     }
 
@@ -464,9 +453,9 @@
       if (!isDragging) return;
       var dx = x - prev.x, dy = y - prev.y;
       if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
-      group.rotation.y += dx * 0.006;
-      group.rotation.x += dy * 0.006;
-      group.rotation.x = Math.max(-1.1, Math.min(1.1, group.rotation.x));
+      camTheta += dx * 0.006;
+      camElevation += dy * 0.006;
+      camElevation = Math.max(-1.1, Math.min(1.1, camElevation));
       prev.x = x; prev.y = y;
     }
     function pointerUp() { isDragging = false; container.classList.remove('dragging'); }
@@ -485,8 +474,7 @@
 
     container.addEventListener('wheel', function (e) {
       e.preventDefault();
-      var z = camera.position.z + e.deltaY * 0.014;
-      camera.position.z = Math.max(3, Math.min(34, z));
+      camRadius = Math.max(MIN_RADIUS, Math.min(MAX_RADIUS, camRadius + e.deltaY * 0.014));
     }, { passive: false });
 
     // ------------------------------------------------------------------
@@ -550,10 +538,8 @@
     // ------------------------------------------------------------------
     function animate() {
       requestAnimationFrame(animate);
-      var paused = effectivelyPaused();
 
-      if (!paused) {
-        group.rotation.y += idleSpin;
+      if (!pausedForOrbits()) {
         systems.forEach(function (sys) {
           sys.projects.forEach(function (proj) {
             proj.orbitAngle += proj.orbitSpeed;
@@ -562,16 +548,19 @@
         });
       }
 
+      if (!pausedForSpin()) {
+        camTheta += idleSpin;
+      }
+
       if (tween.active) {
         var t = Math.min(1, (performance.now() - tween.t0) / tween.duration);
         var e = easeInOutCubic(t);
-        if (tween.rotate) {
-          group.rotation.x = tween.fromX + tween.dX * e;
-          group.rotation.y = tween.fromY + tween.dY * e;
-        }
-        camera.position.z = tween.fromZ + (tween.toZ - tween.fromZ) * e;
+        camTarget.lerpVectors(tween.fromTarget, tween.toTarget, e);
+        camRadius = tween.fromRadius + (tween.toRadius - tween.fromRadius) * e;
         if (t >= 1) tween.active = false;
       }
+
+      updateCameraPosition();
 
       fadeables.forEach(function (m) {
         var target = m.userData.base * m.userData.factor;
