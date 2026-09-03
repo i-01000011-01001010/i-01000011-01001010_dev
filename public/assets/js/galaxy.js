@@ -515,7 +515,7 @@
       if (!isDragging) return;
       var dx = x - prev.x, dy = y - prev.y;
       if (Math.abs(dx) + Math.abs(dy) > 2) moved = true;
-      var dTheta = dx * 0.006;
+      var dTheta = -dx * 0.006;
       var dElevation = dy * 0.006;
       camTheta += dTheta;
       camElevation += dElevation;
