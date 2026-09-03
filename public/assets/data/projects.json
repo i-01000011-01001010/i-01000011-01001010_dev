@@ -33,7 +33,7 @@
     },
     {
       "id": "creative",
-      "label": "Creative & fluff",
+      "label": "Creative",
       "color": "#f0997b",
       "desc": "Projects that exist because they were fun to make, not because anyone asked for them.",
       "projects": [
